@@ -1,7 +1,23 @@
 {
   "name": "md-links",
   "version": "0.1.0",
+  "description": "Validación de archivos .md y la existencia de URL en ellos",
+  "main": "index.js",
+  "keywords": [
+    "javascript",
+    "node.js",
+    "jest",
+    "npm"
+  ],
+  "autor": [
+    "María José Saavedra Cárdenas",
+    "mariasaav91@gmail.com"
+  ],
   "engines": {
     "node": ">=14.x"
+  },
+  "dependencies": {
+    "markdown-link-extractor": "^2.0.1",
+    "recursive-readdir": "^2.2.2"
   }
 }

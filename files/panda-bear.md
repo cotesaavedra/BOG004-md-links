@@ -1,0 +1,1 @@
+Aunque pertenece al orden de los carnívoros, el panda es un animal mayormente herbívoro, alimentándose casi exclusivamente de cerca de treinta especies de caña de bambú (el 99 % de su dieta consiste en bambú). Se sabe que también utiliza insectos y huevos como fuente de proteínas. Es posible que su dieta incluya, además, roedores y crías de ciervo almizclero.
