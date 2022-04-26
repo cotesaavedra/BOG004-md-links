@@ -4,49 +4,44 @@ const markdownLinkExtractor = require('markdown-link-extractor');
 const { promisify } = require('util');
 const axios = require('axios');
 
-const route = "files";
-
+const route = process.argv[2];
+const options = process.argv[3];
 // export const mdLinks = (route) => {
 const mdLinks = (route, options) => {
     return new Promise((resolve, reject) => {
-        // if (options == 'true') {
-        //     const properties = routeExistence(route)
-
-        // }
-
-        resolve(routeExistence(route))
-        //¿LA RUTA ES VALIDA?
-        //IDENTIFICAR ARCHIVOS MD
-        //LEER AQUELLOS ARCHIVOS MD Y BUSCAR URL
-        // CREAR UN ARRAY DE OBJETOS, CADA OBJETO ES UNA URL CON HREF FILE TEXT STATUS Y OK/FAIL
-        //POR CADA ARCHIVO MD QUE CONTENGA URL GUARDAR EN UN ARRAY DE OBJETOS
-        // ARRAY DE OBJETOS FINAL
-        // Y CUANDP YA ESTÉ RESUELTO... FINALIZA CON RESOLVE QUE CONTIENE UN ARRAY DE OBJETOS
-        //CUANDO OPTIONS ES FALSE EL ARRAY DE OBJETOS SOLO DEVUELVE HREF, FILE Y TEXT, CUANDO ES TRUE AGREGA STATUS Y OK
-        // CUANDO OPTIONS ES -STATS DEVUELVE TOTAL DE URLs Y URLs UNICAS
-        // CUANDO OPTIONS ES AMBOS DEVUELVE TOTAL DE URLs, URLs UNICAS Y URLs ROTAS
-        // resolve()
-        ///...
-        //...
+        if (options === '--validate') {
+            resolve(routeExistence(route))
+        } else if (!options || options != '--validate') {
+            resolve(routeExistence(route))
+        } else if (options === '--stats') {
+            // ESTADISTICAS TOTAL Y UNICOS
+        } else if (options === '--stats --validate' || options === '--validate --stats'){
+             // ESTADISTICAS TOTAL, UNICOS Y ROTOS
+        }
+        //     // ARRAY DE OBJETOS FINAL
+        //     // Y CUANDP YA ESTÉ RESUELTO... FINALIZA CON RESOLVE QUE CONTIENE UN ARRAY DE OBJETOS
+        //     //CUANDO OPTIONS ES FALSE EL ARRAY DE OBJETOS SOLO DEVUELVE HREF, FILE Y TEXT, CUANDO ES TRUE AGREGA STATUS Y OK
+        //     // CUANDO OPTIONS ES -STATS DEVUELVE TOTAL DE URLs Y URLs UNICAS
+        //     // CUANDO OPTIONS ES AMBOS DEVUELVE TOTAL DE URLs, URLs UNICAS Y URLs ROTAS
         reject(err)
-    });
+    })
 }
+
 //---FUNCION PARA IDENTIFICAR SI LA RUTA EXISTE O NO EN EL SISTEMA DE ARCHIVOS---
 const routeExistence = (route) => {
-    const exists = promisify(fs.exists);
-    exists(route)
-        .then((exist) => {
-            if (exist) {
-                console.log('Route exists')
-                //¿ES UN DIRECTORIO O UN ARCHIVO? - RECURSIVIDAD
-                identify(route) //RETORNA UN OBJETO PROVENIENTE DE SEARCHURL
+    return new Promise((resolve, reject) => {
+        const exists = promisify(fs.exists);
+        exists(route)
+            .then((exist) => {
+                if (exist) {
+                    resolve(identify(route)) //RETORNA UN OBJETO PROVENIENTE DE SEARCHURL
 
-                //llamar a la función de ¿Es un directorio?
-            } else {
-                //ruta no existe en el sistema de archivos
-                console.log('Route does not exist')
-            }
-        })
+                } else {
+                    console.log('Route does not exist')
+                    reject('Route does not exist') //ruta no existe en el sistema de archivos
+                }
+            })
+    })
 }
 //-----FUNCION PARA IDENTIFICAR SI ES UN ARCHIVO O UN DIRECTORIO-----------
 const identify = (route) => {
@@ -56,11 +51,9 @@ const identify = (route) => {
                 reject('Path-is-not-a-directory/file')
             }
             if (inf.isFile()) {
-                console.log(`¿Is file?: ${inf.isFile()}`);
                 resolve(extName(route))
             }
             if (inf.isDirectory()) {
-                console.log(`¿Is directory?: ${inf.isDirectory()}`);
                 resolve(directory(route))
             }
         })
@@ -72,11 +65,9 @@ const extName = (route) => {
     return new Promise((resolve, reject) => {
         const extName = path.extname(route);
         if (extName != '.md') {
-            //no es un archivo .md, no se puede leer
-            reject('Path-is-not-a-file-.md');
+            reject('Path-is-not-a-file-.md');//no es un archivo .md, no se puede leer
         } else if ((extName == '.md')) {
-            //leer el archivo md y buscar las url
-            console.log('It is a .md archive')
+            console.log('It is a .md archive'); //leer el archivo md y buscar las url
             resolve(searchURL(route));
         }
     })
@@ -126,6 +117,7 @@ const fileRound = (links, routeFile, data) => {
             });
     })
 }
+
 //------FUNCIÓN PARA BUSCAR URLs EN UN ARCHIVO .MD--------
 const searchURL = (route) => {
     return new Promise((resolve, reject) => {
@@ -133,9 +125,7 @@ const searchURL = (route) => {
             .then((data) => {
                 const { links } = markdownLinkExtractor(data);
                 if (links.length >= 1) {
-
                     const objectForRoute = fileRound(links, route, data);
-                    //    console.log(objectForRoute);
                     resolve(objectForRoute)
                 }
             })
@@ -157,7 +147,11 @@ const directory = (route) => {
                 files.forEach(function (file) {
                     switch (path.extname(file)) {
                         case '.md': {
-                            resolve(searchURL(`${route}/${file}`));
+                            searchURL(`${route}/${file}`)
+                                .then((objectForRoute) => {
+                                    const object = objectForRoute
+                                    resolve(object)
+                                })
                             break
                         }
                         case '': {
@@ -171,4 +165,4 @@ const directory = (route) => {
     })
 }
 
-mdLinks(route);
+mdLinks(route, options);
