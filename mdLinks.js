@@ -135,6 +135,7 @@ const searchURL = (route) => {
     })
 }
 
+
 //-----------------------------------DIRECTORY-------------------------------
 //---------FUNCION QUE LEE UN DIRECTORIO / FUNCION RECURSIVA--------
 const directory = (route) => {

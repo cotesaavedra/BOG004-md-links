@@ -3,73 +3,50 @@ const path = require('path');
 const markdownLinkExtractor = require('markdown-link-extractor');
 const { promisify } = require('util');
 const axios = require('axios');
-const yargs = require('yargs');
+const { resolveCaa } = require('dns');
 
-yargs.command({
-    command: 'mdLinks',
-    describe: 'mostrar propiedades de la URL',
-    builder: {
-        route: {
-            describe: 'ruta del archivo/directorio a validar',
-            demandOption: true, //Si es obligatorio o no
-            default: 'Ingresa una ruta', //Si no ingresa una ruta la consola muestra ese texto
-            type: 'string'
-        },
-        validate: {
-            describe: 'mostrar propiedades de la URL segun si es true o false',
-            demandOption: false, //Si es obligatorio o no
-            type: 'boolean'
-        }
-    },
-    handler: function(argv) {
-        mdLinks(argv.route, argv.validate)
-    }
-})
+// let URL = 'https://google.com';
+// let route = 'files';
+// let data = 'hola [este es un text]';
+// let options = true;
+const route = process.argv[2];
+const options = process.argv[3];
 
-// export const mdLinks = (route) => {
 const mdLinks = (route, options) => {
-    console.log('route:', route);
-    console.log('options:', options);
-    if (options) {
-        routeExistence(route)
-    } else {
-        console.log ('is false')
-    }
-    // return new Promise((resolve, reject) => {
-       
-        // resolve(routeExistence(route))
-        //¿LA RUTA ES VALIDA?
-        //IDENTIFICAR ARCHIVOS MD
-        //LEER AQUELLOS ARCHIVOS MD Y BUSCAR URL
-        // CREAR UN ARRAY DE OBJETOS, CADA OBJETO ES UNA URL CON HREF FILE TEXT STATUS Y OK/FAIL
-        //POR CADA ARCHIVO MD QUE CONTENGA URL GUARDAR EN UN ARRAY DE OBJETOS
-        // ARRAY DE OBJETOS FINAL
-        // Y CUANDP YA ESTÉ RESUELTO... FINALIZA CON RESOLVE QUE CONTIENE UN ARRAY DE OBJETOS
-        //CUANDO OPTIONS ES FALSE EL ARRAY DE OBJETOS SOLO DEVUELVE HREF, FILE Y TEXT, CUANDO ES TRUE AGREGA STATUS Y OK
-        // CUANDO OPTIONS ES -STATS DEVUELVE TOTAL DE URLs Y URLs UNICAS
-        // CUANDO OPTIONS ES AMBOS DEVUELVE TOTAL DE URLs, URLs UNICAS Y URLs ROTAS
-        // resolve()
-        ///...
-        //...
-        // reject(err)
-    // });
+    return new Promise((resolve, reject) => {
+        if (options === '--validate') {
+            resolve(initialFunction(route))
+        } else if (!options || options != '--validate') {
+            resolve(initialFunction(route))
+        } else if (options === '--stats') {
+            // ESTADISTICAS TOTAL Y UNICOS
+        } else if (options === '--stats --validate' || options === '--validate --stats') {
+            // ESTADISTICAS TOTAL, UNICOS Y ROTOS
+        }
+        //     // ARRAY DE OBJETOS FINAL
+        //     // Y CUANDP YA ESTÉ RESUELTO... FINALIZA CON RESOLVE QUE CONTIENE UN ARRAY DE OBJETOS
+        //     //CUANDO OPTIONS ES FALSE EL ARRAY DE OBJETOS SOLO DEVUELVE HREF, FILE Y TEXT, CUANDO ES TRUE AGREGA STATUS Y OK
+        //     // CUANDO OPTIONS ES -STATS DEVUELVE TOTAL DE URLs Y URLs UNICAS
+        //     // CUANDO OPTIONS ES AMBOS DEVUELVE TOTAL DE URLs, URLs UNICAS Y URLs ROTAS
+        reject(err)
+    })
 }
-//---FUNCION PARA IDENTIFICAR SI LA RUTA EXISTE O NO EN EL SISTEMA DE ARCHIVOS---
-const routeExistence = (route) => {
-    const exists = promisify(fs.exists);
-    exists(route)
-        .then((exist) => {
-            if (exist) {
-                console.log('Route exists')
-                //¿ES UN DIRECTORIO O UN ARCHIVO? - RECURSIVIDAD
-                identify(route) //RETORNA UN OBJETO PROVENIENTE DE SEARCHURL
 
-                //llamar a la función de ¿Es un directorio?
-            } else {
-                //ruta no existe en el sistema de archivos
-                console.log('Route does not exist')
-            }
-        })
+//---FUNCION PARA IDENTIFICAR SI LA RUTA EXISTE O NO EN EL SISTEMA DE ARCHIVOS---
+const initialFunction = (route) => {
+    return new Promise((resolve, reject) => {
+        const exists = promisify(fs.exists);
+        exists(route)
+            .then((exist) => {
+                if (exist) {
+                    resolve(identify(route)) //RETORNA UN OBJETO PROVENIENTE DE SEARCHURL
+
+                } else {
+                    console.log('Route does not exist')
+                    reject('Route does not exist') //ruta no existe en el sistema de archivos
+                }
+            })
+    })
 }
 //-----FUNCION PARA IDENTIFICAR SI ES UN ARCHIVO O UN DIRECTORIO-----------
 const identify = (route) => {
@@ -79,95 +56,114 @@ const identify = (route) => {
                 reject('Path-is-not-a-directory/file')
             }
             if (inf.isFile()) {
-                console.log(`¿Is file?: ${inf.isFile()}`);
-                resolve(extName(route))
+                resolve(fileExtension(route))
             }
             if (inf.isDirectory()) {
-                console.log(`¿Is directory?: ${inf.isDirectory()}`);
                 resolve(directory(route))
             }
         })
     })
 }
-//-----------------------------------------FILE----------------------------------------
-//-----FUNCION PARA IDENTIFICAR SI ES UN ARCHIVO .MD-------
-const extName = (route) => {
+
+
+//FUNCION QUE ME IDENTIFICA SI ES MD O NO, Y SI ES MD ENTONCES BUSCA SUS URLs
+const fileExtension = (route) => {
     return new Promise((resolve, reject) => {
         const extName = path.extname(route);
         if (extName != '.md') {
-            //no es un archivo .md, no se puede leer
-            reject('Path-is-not-a-file-.md');
+            reject('Path-is-not-a-file-.md');//no es un archivo .md, no se puede leer
         } else if ((extName == '.md')) {
-            //leer el archivo md y buscar las url
-            console.log('It is a .md archive')
-            resolve(searchURL(route));
+            searchLinks(route)
+                .then((links) => {
+                    linkRound(links, route)
+                        .then((response) => {
+                            resolve(response)
+                        })
+
+                })
         }
     })
 }
-//------------FUNCION PARA OBTENER EL CONTENIDO DEL ARCHIVO .MD --------------
-const readFile = (route) => {
-    return new Promise((resolve, reject) => {
+//FUNCION QUE LEE EL MD E IDENTIFICA LINKS Y DEVUELVE ARRAY DE LINKS
+const searchLinks = (route) => {
+    //readFile lee el contenido de la ruta, se asume que la ruta es a un archivo .md
+    let arrayLinks = new Promise((resolve, reject) => {
         fs.readFile(route, 'utf8', (err, data) => {
             if (err) {
                 reject('File-could-not-be-read')
             } else {
-                resolve(data)
+                const { links } = markdownLinkExtractor(data);
+                resolve(links)
             }
         })
     })
+    return arrayLinks
 }
-
-//--FUNCION QUE RECORRE TODO EL MD Y POR CADA LINK CREA UN OBJETO CON SUS PROPIEDADES
-const fileRound = (links, routeFile, data) => {
-    links.forEach(function (link) {
+//MUESTRA UN OBJETO POR LINK DEPENDIENDO DEL OPTIONS
+const ObjectForLink = (link, route) => {
+    new Promise((resolve, reject) => {
         axios.get(link)
-            .then(function (response) {
-                const URLFile = {
-                    href: link,
-                    text: data.match(/\[([^()]*[^()]*)\]/)[0],
-                    file: routeFile,
-                    Status: response.status,
-                    StatusText: response.statusText,
-                    okFail: 'ok',
-                }
-                console.log(URLFile)
-                return URLFile
-            })
-            .catch(err => {
-                if (err.response) {
-                    const URLFile = {
-                        href: link,
-                        text: data.match(/\[([^()]*[^()]*)\]/)[0],
-                        file: routeFile,
-                        Status: err.response.status,
-                        StatusText: err.response.statusText,
-                        okFail: 'fail',
-                    }
-                    console.log(URLFile)
-                    return URLFile
-                }
-            });
-    })
-}
-//------FUNCIÓN PARA BUSCAR URLs EN UN ARCHIVO .MD--------
-const searchURL = (route) => {
-    return new Promise((resolve, reject) => {
-        readFile(route)
-            .then((data) => {
-                const { links } = markdownLinkExtractor(data);
-                if (links.length >= 1) {
+          .then((response) => {
+            let objectValidate = propietiesLink(link, route);
+            objectValidate['status'] = response.status;
+            objectValidate['okFail'] = response.statusText;
+            resolve(objectValidate)
+          })
+          .catch((err) => {
+            let objectValidate = propietiesLink(link, route);
+            objectValidate['status'] = err.response.status;
+            objectValidate['okFail'] = err.response.statusText;
+            resolve(objectValidate)
+          })
+        })
+    
+    // let objectPromise = '';
+    // fs.readFile(route, 'utf8', (err, data) => {
+    //     if (err) {
+    //         reject('File-could-not-be-read')
+    //     }
+    //     objectPromise = new Promise((resolve, reject) => {
+    //         axios.get(link)
+    //             .then((response) => {
+    //                 let objectValidate = propietiesLink(link, route, data);
+    //                 objectValidate['status'] = response.status;
+    //                 objectValidate['okFail'] = response.statusText;
+    //                 resolve(objectValidate)
+    //             })
+    //             .catch((err) => {
+    //                 let objectValidate = propietiesLink(link, route, data);
+    //                 objectValidate['status'] = err.response.status;
+    //                 objectValidate['okFail'] = err.response.statusText;
+    //                 resolve(objectValidate)
+    //             })
+    //     })
+    // })
 
-                    const objectForRoute = fileRound(links, route, data);
-                    //    console.log(objectForRoute);
-                    resolve(objectForRoute)
-                }
-            })
-            .catch((err) => {
-                reject(err)
-            })
-    })
-}
+    // return 'hola', objectPromise
 
+}
+//CREA UN OBJETO POR LINK CUANDO VALIDATE ES FALSE
+const propietiesLink = (link, route) => {
+    return URLFile = {
+        href: link,
+        file: route,
+        // text: data.match(/\[([^()]*[^()]*)\]/)[0],
+    }
+}
+//FUNCION QUE ME RECORRE LOS LINKS Y CREA UN OBJETO POR CADA LINK
+const linkRound = (links, route) => {
+    let linkRoundPromise = new Promise((resolve, reject) => {
+        links.map(function (link) {
+            ObjectForLink(link, route)
+                .then((objectLinkvalidate) => {
+                    console.log(objectLinkvalidate)
+                    console.log('-------FIN------')
+                    resolve(objectLinkvalidate)
+                })
+        })
+    })
+    return linkRoundPromise
+}
 //-----------------------------------DIRECTORY-------------------------------
 //---------FUNCION QUE LEE UN DIRECTORIO / FUNCION RECURSIVA--------
 const directory = (route) => {
@@ -180,7 +176,13 @@ const directory = (route) => {
                 files.forEach(function (file) {
                     switch (path.extname(file)) {
                         case '.md': {
-                            resolve(searchURL(`${route}/${file}`));
+                            searchLinks(`${route}/${file}`)
+                                .then((links) => {
+                                    linkRound(links, route)
+                                        .then((response) => {
+                                            resolve(response)
+                                        })
+                                })
                             break
                         }
                         case '': {
@@ -193,5 +195,42 @@ const directory = (route) => {
         })
     })
 }
+// ObjectForLink(URL, route, data)
+//   .then((objectLinkvalidate) => {
+//     console.log(objectLinkvalidate)
+//     console.log('-------FIN------')
+//   })
+// searchLinks(route)
+//   .then((links) => {
+//     console.log(links);
+//     console.log('---FIN---')
+//   })
+// linkRound(['https://github.com/Laboratoria/BOG004-md','https://google.com'], route, data, options)
 
-yargs.parse()
+// searchLinks(route)
+//   .then((links) => {
+//     //link son los array de links
+//     linkRound(links, route, data, options)
+//   })
+// fileExtension(route)
+// .then((links) => {
+//   linkRound(links, route, data, options)
+// })
+// directory(route)
+// .then((response) => {
+//   console.log(response)
+// })
+// identify(route)
+//   .then((response) => {
+//     console.log(response)
+//   })
+// mdLinks(route, options).then((data) => {
+//   console.log('data', data)
+// }).catch((error) => {
+//   console.log('Error: ', error)
+// })
+mdLinks(route, options).then((data) => {
+    console.log('data', data)
+}).catch((error) => {
+    console.log('Error: ', error)
+})
