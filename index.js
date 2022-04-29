@@ -6,7 +6,7 @@ const axios = require('axios');
 
 const route = process.argv[2];
 const options = process.argv[3];
-// export const mdLinks = (route) => {
+
 const mdLinks = (route, options) => {
   return new Promise((resolve, reject) => {
     routeExistence(route)
@@ -57,6 +57,7 @@ const mdLinks = (route, options) => {
 //---FUNCION PARA IDENTIFICAR SI LA RUTA EXISTE O NO EN EL SISTEMA DE ARCHIVOS---
 const routeExistence = (route) => {
   return new Promise((resolve, reject) => {
+    //VER SI SE PUEDE USAR FS.ACCESS()
     const exists = promisify(fs.exists);
     exists(route)
       .then((exist) => {
@@ -208,11 +209,13 @@ const directory = (route) => {
 //       console.log(response)
 //     })
 //   })
-mdLinks(route, options).then((data) => {
-  console.log('respuesta: ', data)
-}).catch((error) => {
-  console.log('Error: ', error)
-})
+// mdLinks(route, options).then((data) => {
+//   console.log('respuesta: ', data)
+// }).catch((error) => {
+//   console.log('Error: ', error)
+// })
+
+module.exports = mdLinks; 
 // let object = [
 //   {
 //     href: 'https://www.bbc.com/mundo/vert-earth-39273283',
