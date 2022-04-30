@@ -38,7 +38,7 @@ const mdLinks = (route, options) => {
               })
               resolve(objects)
             })
-        } else if (!options === undefined) {
+        } else if (!options) {
           resolve(routeExistence(route)) //devuelve un array de objetos por links
         }
       })
