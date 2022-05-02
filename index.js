@@ -3,10 +3,8 @@ const path = require('path');
 const markdownLinkExtractor = require('markdown-link-extractor');
 const { promisify } = require('util');
 const axios = require('axios');
-
-const route = process.argv[2];
-const options = process.argv[3];
-
+const chalk = require('chalk');
+const argv = process.argv[2];
 const mdLinks = (route, options) => {
   return new Promise((resolve, reject) => {
     routeExistence(route)
@@ -23,16 +21,20 @@ const mdLinks = (route, options) => {
                   objects.forEach(function (object) {
                     if (response.value.config.url === object.href) {
                       object['status'] = response.value.status;
-                      object['ok/Fail'] = response.value.statusText;
+                      object['okFail'] = response.value.statusText;
                     }
                   })
                 } else if (response.status === 'rejected') {
                   objects.forEach(function (object) {
                     if (response.reason.config.url === object.href) {
-                      object['status'] = response.reason.response.status;
-                      object['ok/Fail'] = response.reason.response.statusText;
+                      if (response.reason.code == 'ERR_BAD_REQUEST') {
+                        object['status'] = response.reason.response.status;
+                        object['ok/Fail'] = 'Fail';
+                      } else if (response.reason.code != 'ERR_BAD_REQUEST') {
+                        object['status'] = response.reason.code;
+                        object['okFail'] = 'Fail';
+                      }
                     }
-
                   })
                 }
               })
@@ -43,14 +45,8 @@ const mdLinks = (route, options) => {
         }
       })
       .catch(err => {
-        console.log(err)
+        reject(err)
       })
-    //     // ARRAY DE OBJETOS FINAL
-    //     // Y CUANDP YA ESTÉ RESUELTO... FINALIZA CON RESOLVE QUE CONTIENE UN ARRAY DE OBJETOS
-    //     //CUANDO OPTIONS ES FALSE EL ARRAY DE OBJETOS SOLO DEVUELVE HREF, FILE Y TEXT, CUANDO ES TRUE AGREGA STATUS Y OK
-    //     // CUANDO OPTIONS ES -STATS DEVUELVE TOTAL DE URLs Y URLs UNICAS
-    //     // CUANDO OPTIONS ES AMBOS DEVUELVE TOTAL DE URLs, URLs UNICAS Y URLs ROTAS
-  
   })
 }
 
@@ -64,8 +60,7 @@ const routeExistence = (route) => {
         if (exist) {
           resolve(identify(route)) //RETORNA UN OBJETO PROVENIENTE DE SEARCHURL
         } else {
-          console.log('Route does not exist')
-          reject('Route does not exist') //ruta no existe en el sistema de archivos
+          reject(chalk.bgRed('Route doesn\'t exist')) //ruta no existe en el sistema de archivos
         }
       })
   })
@@ -124,12 +119,21 @@ const searchLinks = (route) => {
         reject('File-could-not-be-read')
       } else {
         const { links } = markdownLinkExtractor(data);
+        const regExr = {
+          href: /^(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,})|(www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,})+$/,
+        };
+        //Recorrer el array de todos los links y preguntar a cada uno si cumple con el
+        //redgex y si cumple guardarlo en el array vacio
+        //
+
         links.forEach(function (link) {
-          array.push({
-            href: link,
-            file: route,
-            text: data.match(/\[([^()]*[^()]*)\]/)[0],
-          })
+          if (regExr.href.test(link)) {
+            array.push({
+              href: link,
+              file: route,
+              text: data.match(/\[([^()]*[^()]*)\]/)[0],
+            })
+          }
         })
         resolve(array)
       }
@@ -162,78 +166,5 @@ const directory = (route) => {
   });
   return objectAllMd
 }
-// ObjectForLink('https://google.com', route)
-//   .then((objectLinkvalidate) => {
-//     console.log(objectLinkvalidate)
-//     console.log('-------FIN------')
-//   })
-// searchLinks(route)
-//   .then((links) => {
-//     console.log(links);
-//     console.log('---FIN---')
-//   })
-// linkRound(['https://github.com/Laboratoria/BOG004-md','https://google.com'], route, data, options)
-// let array = [
-//   'files/marine-animals/whale.md',
-//   'files/panda-bear.md',
-//   'files/snail.md'
-// ]
-// array.map(function(md) {
-//   searchLinks(md)
-//   .then((links) => {
-//     console.log(links)
-//     // linkRound(links, route, data, options)
-//   })
-// })
-// searchLinks(route)
-//   .then((links) => {
-//     console.log(links)
-//     // linkRound(links, route, data, options)
-//   })
-// fileExtension(route)
-// .then((links) => {
-//   linkRound(links, route, data, options)
-// })
-// directory(route)
-// .then((response) => {
-//   console.log(response)
-// })
-// identify(route)
-//   .then((response) => {
-//     console.log(response)
-//   })
-// routeExistence(route)
-//   .then((response) => {
-//     ObjectForLink(response)
-//     .then(response => {
-//       console.log(response)
-//     })
-//   })
-// mdLinks(route, options).then((data) => {
-//   console.log('respuesta: ', data)
-// }).catch((error) => {
-//   console.log('Error: ', error)
-// })
 
 module.exports = mdLinks; 
-// let object = [
-//   {
-//     href: 'https://www.bbc.com/mundo/vert-earth-39273283',
-//     file: 'files/marine-animals/whale.md',
-//     text: '[LA BALLENA MÁS GRANDE DE LA HISTORIA]'
-//   },
-//   {
-//     href: 'https://github.com/Laboratoria/BOG004-md',
-//     file: 'files/snail.md',
-//     text: '[CARACOLES-LINK ROTO]'
-//   },
-//   {
-//     href: 'https://google.com',
-//     file: 'files/snail.md',
-//     text: '[CARACOLES-LINK ROTO]'
-//   }
-// ]
-
-  // .then((response) => {
-  //   console.log(response)
-  // })

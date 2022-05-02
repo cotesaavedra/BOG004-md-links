@@ -51,7 +51,7 @@ const unique = (data) => {
         }
     })
     arrayLinks = [...new Set(arrayLinks)].length
-    console.log('unicos', arrayLinks)
+    console.log('Unique', arrayLinks)
 }
 
 //LINKS ROTOS
@@ -62,13 +62,13 @@ const failed = (data) => {
         for (let i = 0; i < status.length; i++) {
             let clave = status[i];
 
-            if ((objectLink[clave]) === 'Not Found') {
+            if ((objectLink[clave]) === 'Fail') {
                 failesLinksArray.push(objectLink[clave]);
             }
         }
     })
 
-    console.log('Broken: ', failesLinksArray.length)
+    console.log('Broken', failesLinksArray.length)
 }
 
 const filterForCli = (route, options) => {
@@ -79,7 +79,7 @@ const filterForCli = (route, options) => {
             //AMBAS
             mdLinks(route, optionsValidate).then((data) => {
                 let total = data.length
-                console.log('total', total )  //TOTAL
+                console.log('Total', total )  //TOTAL
                 unique(data);//UNICOS
                 failed(data) //ROTOS
             }).catch((error) => {
