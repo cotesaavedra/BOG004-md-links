@@ -1,6 +1,6 @@
 {
-  "name": "md-links",
-  "version": "0.1.0",
+  "name": "@cotesaavedra/md-links",
+  "version": "0.2.0",
   "description": "Validación de archivos .md y la existencia de URL en ellos",
   "main": "index.js",
   "keywords": [

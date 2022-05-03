@@ -52,7 +52,7 @@ const unique = (data) => {
 }
 
 //LINKS ROTOS
-const failed = (data) => {
+const failed = (data) => {  
     let failesLinksArray = [];
     data.forEach(function (objectLink) {
         let status = Object.keys(objectLink);
@@ -110,7 +110,7 @@ const filterForCli = (route, options) => {
     } else {
         //NINGUNA - VALIDATE TRUE
         mdLinks(route, optionsValidate).then((data) => {
-            console.log(data);
+            console.log('respuesta:', data);
         }).catch((error) => {
             console.log('Error: ', error);
         })

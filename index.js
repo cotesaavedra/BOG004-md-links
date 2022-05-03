@@ -4,7 +4,6 @@ const markdownLinkExtractor = require('markdown-link-extractor');
 const { promisify } = require('util');
 const axios = require('axios');
 const chalk = require('chalk');
-const argv = process.argv[2];
 const mdLinks = (route, options) => {
   return new Promise((resolve, reject) => {
     routeExistence(route)
@@ -72,12 +71,12 @@ const identify = (route) => {
       if (err) {
         reject('Path-is-not-a-directory/file');
       } else if (inf.isFile() === true) {
-        resolve(fileExtension(route))
+        resolve(fileExtension(route)) //Array de objetos por cada url encontrada
       } else if (inf.isDirectory() === true) {
-        let arrayMds = directory(route);
+        let arrayMds = directory(route); //retorna un array de todos los archivos md
         let arrayLinks = [];
         arrayMds.forEach(function (md) {
-          arrayLinks.push(searchLinks(md)) //FUNCION QUE LEE EL MD E IDENTIFICA LINKS Y DEVUELVE ARRAY DE LINKS
+          arrayLinks.push(searchLinks(md)) //FUNCION QUE LEE EL MD E IDENTIFICA LINKS Y DEVUELVE ARRAY OBJETOS DE LINKS
         })
         Promise.allSettled(arrayLinks).then(responses => {
           let arrayLinksMd = []; //arreglo con todos los objetos que tienen href, file y text
@@ -118,7 +117,7 @@ const searchLinks = (route) => {
       if (err) {
         reject('File-could-not-be-read');
       } else {
-        const { links } = markdownLinkExtractor(data);
+        const { links } = markdownLinkExtractor(data); //Array de urls
         const regExr = {
           href: /^(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,})|(www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,})+$/,
         };
