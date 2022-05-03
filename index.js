@@ -1,4 +1,4 @@
-const fs = require('fs')
+const fs = require('fs');
 const path = require('path');
 const markdownLinkExtractor = require('markdown-link-extractor');
 const { promisify } = require('util');
@@ -10,7 +10,7 @@ const mdLinks = (route, options) => {
     routeExistence(route)
       .then(objects => {
         if (options === '--validate') {
-          let arrayPromises = []
+          let arrayPromises = [];
           objects.forEach(objeto => {
             arrayPromises.push(axios.get(objeto.href))
           })
@@ -38,14 +38,14 @@ const mdLinks = (route, options) => {
                   })
                 }
               })
-              resolve(objects)
+              resolve(objects);
             })
         } else if (!options) {
-          resolve(routeExistence(route)) //devuelve un array de objetos por links
+          resolve(routeExistence(route)); //devuelve un array de objetos por links
         }
       })
       .catch(err => {
-        reject(err)
+        reject(err);
       })
   })
 }
@@ -58,7 +58,7 @@ const routeExistence = (route) => {
     exists(route)
       .then((exist) => {
         if (exist) {
-          resolve(identify(route)) //RETORNA UN OBJETO PROVENIENTE DE SEARCHURL
+          resolve(identify(route)); //RETORNA UN OBJETO PROVENIENTE DE SEARCHURL
         } else {
           reject(chalk.bgRed('Route doesn\'t exist')) //ruta no existe en el sistema de archivos
         }
@@ -70,7 +70,7 @@ const identify = (route) => {
   return new Promise((resolve, reject) => {
     fs.lstat(route, (err, inf) => {
       if (err) {
-        reject('Path-is-not-a-directory/file')
+        reject('Path-is-not-a-directory/file');
       } else if (inf.isFile() === true) {
         resolve(fileExtension(route))
       } else if (inf.isDirectory() === true) {
@@ -84,10 +84,10 @@ const identify = (route) => {
           responses.forEach(function (response) {
             if (response.status === 'fulfilled') {
               // tres puntito mezcla arreglos
-              arrayLinksMd.push(...response.value) //response.value devuelve un array de objetos (links-propiedades)
+              arrayLinksMd.push(...response.value); //response.value devuelve un array de objetos (links-propiedades)
             }
           })
-          resolve(arrayLinksMd)
+          resolve(arrayLinksMd);
         })
       }
     })
@@ -103,7 +103,7 @@ const fileExtension = (route) => {
       searchLinks(route)
         .then((objectMd) => {
           //LLamar a la funcion de recorrer el objeto
-          resolve(objectMd)
+          resolve(objectMd);
         })
     }
   })
@@ -116,7 +116,7 @@ const searchLinks = (route) => {
     let array = []
     fs.readFile(route, 'utf8', (err, data) => {
       if (err) {
-        reject('File-could-not-be-read')
+        reject('File-could-not-be-read');
       } else {
         const { links } = markdownLinkExtractor(data);
         const regExr = {
@@ -125,18 +125,19 @@ const searchLinks = (route) => {
         //Recorrer el array de todos los links y preguntar a cada uno si cumple con el
         //redgex y si cumple guardarlo en el array vacio
         //
-        const arrayText = data.match(/\[([^()]*[^()]*)\]/g);
+        let arrayText = data.match(/\[.*?\]\(/g);
+        // arrayText.map(text => text != '')
+        // console.log(arrayText)
         links.forEach(function (link, x) {
           if (regExr.href.test(link)) {
             array.push({
               href: link,
               file: route,
-              text: arrayText[x].replace(/[\[\]]/g,''),
+              text: arrayText[x].replace(/[\[\]\(]/g,''),
             })
           }
         })
-        
-        resolve(array)
+        resolve(array);
       }
     })
   })
@@ -146,11 +147,9 @@ const searchLinks = (route) => {
 //-----------------------------------DIRECTORY-------------------------------
 //---------FUNCION QUE LEE UN DIRECTORIO / FUNCION RECURSIVA--------
 const directory = (route) => {
-  let objectAllMd = []
-
+  let objectAllMd = [];
   fileObjs = fs.readdirSync(route, { withFileTypes: true });
   fileObjs.forEach(file => {
-    // console.log('***********', file.name);
     switch (path.extname(file.name)) {
       case '.md': {
         objectAllMd.push(`${route}/${file.name}`)
@@ -168,7 +167,6 @@ const directory = (route) => {
   return objectAllMd
 }
 
-// module.exports = mdLinks;
 module.exports = {
   mdLinks,
   identify,

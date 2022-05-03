@@ -2,9 +2,8 @@
 const arg = require('arg');
 const { mdLinks } = require('./index');
 
-// const route = process.argv[2];
-const [, , , ...options] = process.argv
-let route = process.argv[2]
+const [, , , ...options] = process.argv;
+let route = process.argv[2];
 
 const optionsCli = () => {
     const args = arg({
@@ -21,7 +20,7 @@ const optionsCli = () => {
 Object.filter = function (objectOptions, filterFunction) {
     return Object.keys(objectOptions)
         .filter(function (ObjectKey) {
-            return filterFunction(objectOptions[ObjectKey])
+            return filterFunction(objectOptions[ObjectKey]);
         })
         .reduce(function (result, ObjectKey) {
             result[ObjectKey] = objectOptions[ObjectKey];
@@ -37,9 +36,7 @@ optionsValidate = Object.values(optionsValidate).toString();
 const unique = (data) => {
     let arrayLinks = []
     data.forEach(function (objectLink) {
-        // console.log('objectLink', objectLink)
         let hrefs = Object.values(objectLink);
-        // console.log('hrefs', hrefs)
         for (let i = 0; i < hrefs.length; i++) {
             let clave = hrefs[i];
             const regExr = {
@@ -61,74 +58,70 @@ const failed = (data) => {
         let status = Object.keys(objectLink);
         for (let i = 0; i < status.length; i++) {
             let clave = status[i];
-
             if ((objectLink[clave]) === 'Fail') {
                 failesLinksArray.push(objectLink[clave]);
             }
         }
     })
-
     console.log('Broken', failesLinksArray.length)
 }
 
 const filterForCli = (route, options) => {
-    // console.log('route:', route)
-    // console.log('options:', options);
     if (options.validate) {
         if (options.stats) {
             //AMBAS
             mdLinks(route, optionsValidate).then((data) => {
-                let total = data.length
+                let total = data.length;
                 console.log('Total', total )  //TOTAL
                 unique(data);//UNICOS
-                failed(data) //ROTOS
+                failed(data); //ROTOS
             }).catch((error) => {
-                console.log('Error: ', error)
+                console.log('Error: ', error);
             })
         } else {
             //SOLO VALIDATE
             mdLinks(route, optionsValidate).then((data) => {
-                console.log('respuesta: ', data)
+                console.log('respuesta: ', data);
             }).catch((error) => {
-                console.log('Error: ', error)
+                console.log('Error: ', error);
             })
         }
     } else if (options.stats) {
         if (options.validate) {
             //AMBAS
             mdLinks(route, optionsValidate).then((data) => {
-                let total = data.length
+                let total = data.length;
                 console.log('total', total )  //TOTAL
                 unique(data);//UNICOS
-                failed(data) //ROTOS
+                failed(data); //ROTOS
             }).catch((error) => {
-                console.log('Error: ', error)
+                console.log('Error: ', error);
             })
         } else {
             //SOLO STATS
             mdLinks(route, optionsValidate).then((data) => {
-                let total = data.length
-                console.log('total', total )  //TOTAL
+                let total = data.length;
+                console.log('total', total);  //TOTAL
                 unique(data);//UNICOS
             }).catch((error) => {
-                console.log('Error: ', error)
+                console.log('Error: ', error);
             })
         }
     } else {
         //NINGUNA - VALIDATE TRUE
         mdLinks(route, optionsValidate).then((data) => {
-            console.log(data)
+            console.log(data);
         }).catch((error) => {
-            console.log('Error: ', error)
+            console.log('Error: ', error);
         })
     }
 }
 
 const cli = (route, options) => {
     let objectCli = optionsCli(route, options); //Un objeto validate y stats
-    objectCli = filterForCli(route, objectCli)
+    objectCli = filterForCli(route, objectCli);
 }
-cli(route, options)
+cli(route, options);
 
 module.exports = {
     unique,

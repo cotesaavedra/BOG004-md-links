@@ -17,6 +17,8 @@
     "node": ">=14.x"
   },
   "scripts": {
+    "eslint": "eslint --ext .js test/",
+    "pretest": "npm run eslint",
     "test": "jest --coverage"
   },
   "dependencies": {
@@ -29,6 +31,7 @@
     "md-links": "./cli.js"
   },
   "devDependencies": {
+    "eslint": "^8.14.0",
     "jest": "^28.0.3"
   },
   "jest": {
