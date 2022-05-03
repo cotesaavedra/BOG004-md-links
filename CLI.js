@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 const arg = require('arg');
-const mdLinks = require('./index');
+const { mdLinks } = require('./index');
 
 // const route = process.argv[2];
 const [, , , ...options] = process.argv
@@ -130,3 +130,8 @@ const cli = (route, options) => {
 }
 cli(route, options)
 
+module.exports = {
+    unique,
+    failed,
+    filterForCli,
+}

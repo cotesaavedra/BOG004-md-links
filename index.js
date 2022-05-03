@@ -125,16 +125,17 @@ const searchLinks = (route) => {
         //Recorrer el array de todos los links y preguntar a cada uno si cumple con el
         //redgex y si cumple guardarlo en el array vacio
         //
-
-        links.forEach(function (link) {
+        const arrayText = data.match(/\[([^()]*[^()]*)\]/g);
+        links.forEach(function (link, x) {
           if (regExr.href.test(link)) {
             array.push({
               href: link,
               file: route,
-              text: data.match(/\[([^()]*[^()]*)\]/)[0],
+              text: arrayText[x].replace(/[\[\]]/g,''),
             })
           }
         })
+        
         resolve(array)
       }
     })
@@ -167,4 +168,12 @@ const directory = (route) => {
   return objectAllMd
 }
 
-module.exports = mdLinks; 
+// module.exports = mdLinks;
+module.exports = {
+  mdLinks,
+  identify,
+  fileExtension,
+  routeExistence,
+  searchLinks,
+  directory
+}

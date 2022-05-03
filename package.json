@@ -16,6 +16,9 @@
   "engines": {
     "node": ">=14.x"
   },
+  "scripts": {
+    "test": "jest --coverage"
+  },
   "dependencies": {
     "arg": "^5.0.1",
     "axios": "^0.27.0",
@@ -24,5 +27,11 @@
   },
   "bin": {
     "md-links": "./cli.js"
+  },
+  "devDependencies": {
+    "jest": "^28.0.3"
+  },
+  "jest": {
+    "verbose": true
   }
 }
