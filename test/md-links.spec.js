@@ -17,7 +17,7 @@ describe('Promesas reutilizables - Reject', () => {
   });
 
   it('No se puede leer el archivo', () => {
-    const route = 'C:/Users/Cote/Desktop/laboratoria/md-links/BOG004-md-links/.editorconfig';
+    const route = './.editorconfig';
     return identify(route).catch(data => {
       expect(data).toBe('Path-is-not-a-file-.md');
     })
@@ -87,13 +87,6 @@ describe('Testeando función md-Links', () => {
         text: 'CARACOLES-LINK ROTO',
         status: 404,
         'ok/Fail': 'Fail'
-      },
-      {
-        href: 'https://www.drauta.com/que-es-nodejs-y-para-que-sirve',      
-        file: 'files/panda-bear.md',
-        text: 'CARACOLES',
-        status: 'CERT_HAS_EXPIRED',
-        okFail: 'Fail'
       }
     ]
     return expect(mdLinks(route, options)).resolves.toEqual(result);
