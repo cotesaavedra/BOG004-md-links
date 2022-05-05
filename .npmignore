@@ -1,0 +1,6 @@
+.vscode
+.gitattributes
+.editorconfig
+*.tgz
+coverage
+files
