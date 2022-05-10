@@ -112,7 +112,7 @@ const fileExtension = (route) => {
 const searchLinks = (route) => {
   //readFile lee el contenido de la ruta, se asume que la ruta es a un archivo .md
   let arrayLinks = new Promise((resolve, reject) => {
-    let array = []
+    let array = [];
     fs.readFile(route, 'utf8', (err, data) => {
       if (err) {
         reject('File-could-not-be-read');
@@ -125,14 +125,18 @@ const searchLinks = (route) => {
         //redgex y si cumple guardarlo en el array vacio
         //
         let arrayText = data.match(/\[.*?\]\(/g);
+        arrayText = arrayText.map(function(x){
+          return x.slice(1,-2);
+        })
         // arrayText.map(text => text != '')
         // console.log(arrayText)
         links.forEach(function (link, x) {
           if (regExr.href.test(link)) {
+            const textLink = arrayText[x];
             array.push({
               href: link,
               file: route,
-              text: arrayText[x].replace(/[\[\]\(]/g,''),
+              text: textLink
             })
           }
         })

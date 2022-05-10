@@ -41,6 +41,7 @@ describe('Promesas reutilizables - Resolve', () => {
   it('Funcion recursiva - para directorio', () => {
     const route = 'files';
     const result = [
+      "files/marine-animals/readme.md",
       "files/marine-animals/whale.md",
       "files/panda-bear.md",
       "files/snail.md"
@@ -51,7 +52,7 @@ describe('Promesas reutilizables - Resolve', () => {
 
 describe('Testeando función md-Links', () => {
   test('Retorna un array de objetos - validate false', () => {
-    const route = 'files/marine-animals';
+    const route = 'files/marine-animals/whale.md';
     const result = [
       {
         href: 'https://www.bbc.com/mundo/vert-earth-39273283',
@@ -63,7 +64,7 @@ describe('Testeando función md-Links', () => {
   });
   test('Retorna un array de objetos - validate true', () => {
     jest.setTimeout(100000);
-    const route = 'files/marine-animals';
+    const route = 'files/marine-animals/whale.md';
     const options = '--validate'
     const result = [
       {
